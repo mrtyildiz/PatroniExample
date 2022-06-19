@@ -1,0 +1,59 @@
+scope: patroni
+namespace: /service/
+
+log:
+    level: INFO
+    dir: /postgres/LOG/
+    file_size: 33554432
+    file_num: 5
+    dateformat: '%Y-%m-%d %H:%M:%S %z'
+    
+etcd:
+  hosts: 
+      - 172.34.0.21:2379
+
+bootstrap:
+    dcs:
+        ttl: 100
+        loop_wait: 10
+        retry_timeout: 10
+        maximum_lag_on_failover: 1048576
+        postgresql:
+            use_pg_rewind: true
+            use_slots: true
+            parameters:
+                    wal_level: replica
+                    hot_standby: "on"
+                    wal_keep_segments: 5120
+                    max_wal_senders: 5
+                    max_replication_slots: 5
+                    checkpoint_timeout: 30
+                    log_connections: true
+                    log_statement: all
+                    log_min_messages: INFO
+
+    initdb:
+    - encoding: UTF8
+    - data-checksums
+
+    pg_hba:
+    - host replication all all md5
+    - host all all all md5
+
+postgresql:
+    data_dir: /data/patroni
+    bin_dir: /usr/lib/postgresql/14/bin
+    pgpass: /tmp/pgpass
+    create_replica_methods:
+        basebackup:
+            checkpoint: 'fast'
+    parameters:
+        unix_socket_directories: '.'
+        logging_collector: "on"
+        log_directory: "log" 
+
+tags:
+    nofailover: false
+    noloadbalance: false
+    clonefrom: false
+    nosync: false
