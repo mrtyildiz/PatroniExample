@@ -1,0 +1,75 @@
+version: '2'
+
+networks:
+  patroni:
+    ipam:
+      config:
+        - subnet: 172.34.0.0/24
+
+services:
+ haproxy:
+    image: partoni-haproxy:latest
+    networks:
+      patroni:
+        ipv4_address: 172.34.0.35
+    ports:
+      - 5000:5000
+      - 7000:7000
+    hostname: haproxy
+
+ patroni-1:
+      image: partoni:latest
+      networks:
+        patroni:
+          ipv4_address: 172.34.0.22
+      ports:
+        - 5432:5432
+        - 8008:8008
+      hostname: patroni-1
+      volumes:
+        - ./data/partoni1:/data/partoni
+      environment:
+        PATRONI_API_CONNECT_PORT: 8008
+        REPLICATION_NAME: replicator 
+        REPLICATION_PASS: replpass
+        SU_NAME: postgres
+        SU_PASS: supass
+        POSTGRES_APP_ROLE_PASS: appass
+
+ patroni-2:
+      image: partoni:latest
+      networks:
+        patroni:
+          ipv4_address: 172.34.0.33
+      ports:
+        - 5433:5432
+        - 8009:8008
+      hostname: patroni-2
+      volumes:
+        - ./data/partoni2:/data/partoni
+      environment:
+        PATRONI_API_CONNECT_PORT: 8008
+        REPLICATION_NAME: replicator 
+        REPLICATION_PASS: replpass
+        SU_NAME: postgres
+        SU_PASS: supass
+        POSTGRES_APP_ROLE_PASS: appass
+
+ patroni-3:
+      image: partoni:latest
+      networks:
+        patroni:
+          ipv4_address: 172.34.0.44
+      ports:
+        - 5434:5432
+        - 8010:8008
+      hostname: patroni-3
+      volumes:
+        - ./data/partoni3:/data/partoni
+      environment:
+        PATRONI_API_CONNECT_PORT: 8008
+        REPLICATION_NAME: replicator 
+        REPLICATION_PASS: replpass
+        SU_NAME: postgres
+        SU_PASS: supass
+        POSTGRES_APP_ROLE_PASS: appass
